@@ -10,23 +10,19 @@ public class ClawColliderHandler : MonoBehaviour
 
     private void Start()
     {
-        PlayerController.Instance.OnObjectFinishedGrabbed += PlayerController_OnObjectFinishedGrabbed;
+        PlayerController.Instance.OnGrabbedObjectReleased += PlayerController_OnObjectFinishedGrabbed;
     }
 
     private void PlayerController_OnObjectFinishedGrabbed()
     {
+        if (!grabbedTransform) return;
+        grabbedTransform.gameObject.AddComponent<Rigidbody>();
         grabbedTransform = null;
-    }
-
-    void FixedUpdate()
-    {
-        if (grabbedTransform == null) return;
-        grabbedTransform.position = grabPoint.position;
     }
 
     public IEnumerator SetGrabbedGameObject(Transform grabbedTransform)
     {
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(.4f);
 
         float elapsedTime = 0f;
         float grabbingSpeed = 0.15f;
@@ -42,6 +38,7 @@ public class ClawColliderHandler : MonoBehaviour
         }
 
         grabbedTransform.position = targetPosition;
+        grabbedTransform.parent = transform;
         this.grabbedTransform = grabbedTransform;
     }
 }

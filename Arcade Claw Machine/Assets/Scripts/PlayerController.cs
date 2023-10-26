@@ -7,7 +7,8 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance;
-    public event Action OnObjectFinishedGrabbed;
+    public event Action OnGrabbedObjectReleased;
+
 
     private enum State
     {
@@ -17,15 +18,20 @@ public class PlayerController : MonoBehaviour
     }
 
     [SerializeField] private Rigidbody clawMachineRb;
-    [SerializeField] private Rigidbody verticalBarRb;
-    [SerializeField] private Rigidbody horizontalBarRb;
+
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private Animator animator;
     [SerializeField] private const string CLAWGRABANIMATION = "IsGrab";
     [SerializeField] private float targetClawMachineYPosition = 2.25f;
+    [SerializeField] private float minZPosition;
+    [SerializeField] private float maxZPosition;
+    [SerializeField] private float minXPosition;
+    [SerializeField] private float maxXPosition;
+
 
     private State state;
     private float startingClawMachineYPosition;
+    private bool isGrabbed;
 
     private void Awake()
     {
@@ -42,7 +48,17 @@ public class PlayerController : MonoBehaviour
 
     private void GameInput_OnGrabPressed()
     {
-        if (state == State.Open) StartCoroutine(MoveClawMachine(targetClawMachineYPosition, () => { StartCoroutine(SetStateTo(State.Close, 0)); }));
+        isGrabbed = !isGrabbed;
+
+        if (isGrabbed && state == State.Open)
+        {
+            StartCoroutine(MoveClawMachine(targetClawMachineYPosition, () => { StartCoroutine(SetStateTo(State.Close, 0)); }));
+        }
+        else
+        {
+            OnGrabbedObjectReleased();
+            animator.SetBool(CLAWGRABANIMATION, false);
+        }
     }
 
     // Update is called once per frame
@@ -60,9 +76,7 @@ public class PlayerController : MonoBehaviour
             case State.Rising:
                 StartCoroutine(MoveClawMachine(startingClawMachineYPosition, () =>
                 {
-                    StartCoroutine(SetStateTo(State.Open, 1));
-                    animator.SetBool(CLAWGRABANIMATION, false);
-                    OnObjectFinishedGrabbed();
+                    StartCoroutine(SetStateTo(State.Open, 0));
                 }));
                 break;
             default:
@@ -75,15 +89,8 @@ public class PlayerController : MonoBehaviour
         Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
         Vector3 moveDirection = new Vector3(inputVector.x, 0, inputVector.y);
 
-        if (moveDirection.x != 0)
-        {
-            verticalBarRb.AddForce(moveDirection * moveSpeed);
-        }
-
-        if (moveDirection.z != 0)
-        {
-            horizontalBarRb.AddForce(moveDirection * moveSpeed);
-        }
+        moveDirection.x = Mathf.Clamp(moveDirection.x, minXPosition, maxXPosition);
+        moveDirection.z = Mathf.Clamp(moveDirection.z, minZPosition, maxZPosition);
 
         clawMachineRb.AddForce(moveDirection * moveSpeed);
     }
@@ -91,7 +98,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator MoveClawMachine(float targetYPosition, Action onActionComplete)
     {
         float elapsedTime = 0f;
-        float verticalMoveSpeed = 0.8f;
+        float verticalMoveSpeed = 0.6f;
         Vector3 currentPosition = clawMachineRb.transform.position;
         Vector3 targetPosition = new Vector3(currentPosition.x, targetYPosition, currentPosition.z);
 
@@ -106,10 +113,14 @@ public class PlayerController : MonoBehaviour
         onActionComplete();
     }
 
-
     public bool IsCloseState()
     {
         return state == State.Close;
+    }
+
+    public bool IsRisingState()
+    {
+        return state == State.Rising;
     }
 
     private IEnumerator SetStateTo(State state, float waitTime)

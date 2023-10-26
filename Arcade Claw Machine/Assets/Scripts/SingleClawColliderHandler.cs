@@ -6,22 +6,19 @@ public class SingleClawColliderHandler : MonoBehaviour
 {
     [SerializeField] private ClawColliderHandler clawColliderHandler;
 
-    private GameObject grabbedObject;
+    private Transform grabbedTransform;
 
     private void OnTriggerStay(Collider other)
     {
         if (!PlayerController.Instance.IsCloseState())
         {
-            grabbedObject = null;
+            grabbedTransform = null;
             return;
         };
 
-        if (grabbedObject) return;
-
-        grabbedObject = other.gameObject;
-        grabbedObject.GetComponent<MeshCollider>().enabled = false;
-        grabbedObject.GetComponent<Rigidbody>().useGravity = false;
-        StartCoroutine(clawColliderHandler.SetGrabbedGameObject(grabbedObject.transform));
+        if (grabbedTransform) return;
+        grabbedTransform = other.gameObject.transform;
+        StartCoroutine(clawColliderHandler.SetGrabbedGameObject(grabbedTransform));
     }
 
 }
