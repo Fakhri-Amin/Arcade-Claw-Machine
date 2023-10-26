@@ -8,6 +8,7 @@ public class PrizeScoreColliderHandler : MonoBehaviour
     {
         if (other.gameObject.TryGetComponent<DollController>(out DollController dollController))
         {
+            ScoreManagerUI.Instance.UpdateUI(dollController.GetDollScore());
             Destroy(dollController.gameObject);
         }
     }

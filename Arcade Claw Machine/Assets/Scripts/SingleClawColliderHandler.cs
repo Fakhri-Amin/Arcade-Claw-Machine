@@ -16,9 +16,11 @@ public class SingleClawColliderHandler : MonoBehaviour
             return;
         };
 
-        if (grabbedTransform) return;
-        grabbedTransform = other.gameObject.transform;
-        StartCoroutine(clawColliderHandler.SetGrabbedGameObject(grabbedTransform));
+        if (other.GetComponent<DollController>() && !grabbedTransform)
+        {
+            grabbedTransform = other.gameObject.transform;
+            StartCoroutine(clawColliderHandler.SetGrabbedGameObject(grabbedTransform));
+        }
     }
 
 }

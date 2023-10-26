@@ -4,15 +4,10 @@ using UnityEngine;
 
 public class DollController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] private int dollScore;
 
-    // Update is called once per frame
-    void Update()
+    public int GetDollScore()
     {
-        
+        return dollScore;
     }
 }
